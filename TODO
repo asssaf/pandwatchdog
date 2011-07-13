@@ -1,0 +1,25 @@
+Per user crontab-like configuration file, e.g.:
+
+# time between checks to see if device is around
+poll_time=60
+
+# device-address * * * * * action
+
+or maybe use crontab with checking with the daemon to see if the device is alive
+and just give the daemon addresses to monitor
+
+devices=addr1,addr2,addr3
+
+
+send event on connect/disconnect (for implementing screen lock for example)
+
+
+
+use socket? dbus? none (is_connected doesn't need privileges)
+pandwatchdog --is-connected ADDR && backup_my_device
+
+pandwatchdog --daemon --poll ADDR --poll-time 60
+
+
+
+pand --devup /etc/pandwatchdog/connect --devdown /etc/pandwatchdog/disconnect

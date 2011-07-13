@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#TODO read config
-ADDRESS="AA:BB:CC:DD:EE:FF"
-REV_ADDDRESS="FF:EE:DD:CC:BB:AA"
 SLEEP_SECONDS="60"
 
 LOG="/dev/stderr"
@@ -13,22 +10,40 @@ log() {
   echo "$*" >> $LOG
 }
 
+
+die() {
+  local err="$1"
+  shift
+  echo "$*" >&2
+  exit $err
+}
+
+
+CONF_LOCATION="/etc/pandwatchdog.conf"
+[ -r "$CONF_LOCATION" ] || die 1 "Error reading configuration file: $CONF_LOCATION"
+source "$CONF_LOCATION"
+
+[ -n "$address" ] || die 2 "Please specify device address in the configuration file"
+[ -n "$rev_address" ] || die 2 "Please specify device reverse address in the configuration file"
+
+
+
 is_connected() {
-  "$PAND" --list | grep -q "$REV_ADDRESS PANU" &>> "$LOG"
+  "$PAND" --list | grep -q "$rev_address PANU" &>> "$LOG"
   return $?
 }
 
 connect() {
   if ! is_connected
   then
-    "$PAND" --connect "$ADDRESS" --role PANU --nodetach --master &>> "$LOG"
+    "$PAND" --connect "$address" --role PANU --nodetach --master &>> "$LOG"
   fi
 }
 
 disconnect() {
   if is_connected
   then
-    "$PAND" --kill "$ADDRESS" &>> "$LOG"
+    "$PAND" --kill "$address" &>> "$LOG"
   fi
 }
 
@@ -38,15 +53,9 @@ while /bin/true
 do
   if ! is_connected 
   then 
-    log "Attemption to connect to $ADDRESS"
+    log "Attempting to connect to $address"
     connect
-  else
-    log "2"
   fi
-  #connect
-  #else
-  #  log "Connected"
-  #fi
 
   sleep $SLEEP_SECONDS
 done
